@@ -1,0 +1,58 @@
+name: Backend CI/CD
+
+on:
+    pull_request:
+        paths:
+            - "backend/**"
+            - ".github/workflows/backend.yml"
+    push:
+        branches: [main]
+        paths:
+            - "backend/**"
+            - ".github/workflows/backend.yml"
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+            - run: python -m pip install --upgrade pip
+            - run: pip install -r requirements.txt
+            - run: pytest -q
+
+    build-and-deploy:
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        needs: test
+        runs-on: ubuntu-latest
+        environment: production
+        steps:
+            - uses: actions/checkout@v4
+            - uses: azure/login@v2
+              with:
+                  client-id: ${{ secrets.AZURE_CLIENT_ID }}
+                  tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+                  subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            - uses: azure/cli@v2
+              with:
+                  inlineScript: |
+                      az acr login --name ${{ vars.ACR_NAME }}
+            - name: Build and push backend image
+              run: |
+                  docker build -t ${{ vars.ACR_LOGIN_SERVER }}/backend:${{ github.sha }} ./backend
+                  docker push ${{ vars.ACR_LOGIN_SERVER }}/backend:${{ github.sha }}
+            - name: Deploy to AKS
+              run: |
+                  export IMAGE="${{ vars.ACR_LOGIN_SERVER }}/backend:${{ github.sha }}"
+                  envsubst < k8s/base/backend.yaml | kubectl apply -f -
+              env:
+                  KUBECONFIG: ${{ secrets.KUBECONFIG }}

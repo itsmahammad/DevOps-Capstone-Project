@@ -9,6 +9,19 @@ A modern, AI-powered **ATS (Applicant Tracking System) Resume Analyzer** that he
 <!-- Project preview / OG image (also used for social shares) -->
 ![ATS Resume Analyzer Preview](./frontend/public/og-image.svg)
 
+## 🚀 Deployment Baseline
+
+This repository now includes a production-oriented AKS deployment baseline for:
+
+- Azure Kubernetes Service with NGINX ingress
+- Azure SQL as the production data layer
+- Azure Container Registry only
+- GitHub Actions with OIDC-based Azure authentication
+- Separate frontend and backend deployment workflows
+- A single production environment
+
+See [DEPLOYMENT_NOTES.md](DEPLOYMENT_NOTES.md) for the implementation notes and next steps.
+
 ## ✨ What It Does
 
 Upload your resume (PDF or DOCX) and get instant, comprehensive analysis:
