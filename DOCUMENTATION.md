@@ -107,6 +107,21 @@ This is a **full-stack web application** with:
 └──────────────────────────────────────────────────────────────────┘
 ```
 
+### Infrastructure Layer (Terraform on Azure)
+
+The project now includes an infrastructure-as-code layer under [infra/terraform](infra/terraform) for deploying a production-ready Azure environment.
+
+- [infra/terraform/bootstrap](infra/terraform/bootstrap) provisions a standalone Terraform state backend using a resource group, storage account, and blob container.
+- [infra/terraform](infra/terraform) contains the main deployment configuration for Azure resources such as:
+  - Azure Kubernetes Service (AKS)
+  - Azure Container Registry (ACR)
+  - Azure Key Vault
+  - Azure SQL Server and database with a private endpoint
+  - Azure Log Analytics
+  - Networking with a virtual network, subnets, and NSGs
+
+The deployment flow is intentionally split so that the bootstrap state storage is created first, then the main infrastructure consumes that backend for remote state management.
+
 ### Why This Architecture?
 
 | Decision | Reason |
@@ -115,6 +130,7 @@ This is a **full-stack web application** with:
 | **Python for Backend** | Best libraries for PDF parsing, NLP, text processing |
 | **Next.js for Frontend** | Server-side rendering, great performance, modern React |
 | **REST API** | Simple, widely understood, easy to test |
+| **Terraform + Azure** | Provides repeatable, versioned infrastructure provisioning for production environments |
 
 ---
 
@@ -314,6 +330,26 @@ Resume-ATS/
 ├── DOCUMENTATION.md            # This file!
 ├── setup.bat                   # Windows setup script
 ├── start.bat                   # Windows start script
+├── infra/                      # Infrastructure as Code
+│   └── terraform/              # Azure deployment with Terraform
+│       ├── backend.tf          # Remote state backend configuration
+│       ├── providers.tf        # Terraform provider setup
+│       ├── main.tf             # Root module wiring
+│       ├── variables.tf        # Root input variables
+│       ├── outputs.tf          # Root outputs
+│       ├── terraform.tfvars.example
+│       ├── bootstrap/          # One-time bootstrap for remote state
+│       │   ├── main.tf
+│       │   ├── variables.tf
+│       │   └── outputs.tf
+│       └── modules/            # Reusable infrastructure modules
+│           ├── resource-group/
+│           ├── networking/
+│           ├── aks/
+│           ├── acr/
+│           ├── key-vault/
+│           ├── sql/
+│           └── log-analytics/
 └── .gitignore                  # Git ignore file
 ```
 
