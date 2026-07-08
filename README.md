@@ -9,18 +9,63 @@ A modern, AI-powered **ATS (Applicant Tracking System) Resume Analyzer** that he
 <!-- Project preview / OG image (also used for social shares) -->
 ![ATS Resume Analyzer Preview](./frontend/public/og-image.svg)
 
-## 🚀 Deployment Baseline
+## 🚀 Deployment & DevOps
 
-This repository now includes a production-oriented AKS deployment baseline for:
+This repository includes a complete production-oriented AKS deployment with:
 
-- Azure Kubernetes Service with NGINX ingress
-- Azure SQL as the production data layer
-- Azure Container Registry only
-- GitHub Actions with OIDC-based Azure authentication
-- Separate frontend and backend deployment workflows
-- A single production environment
+- **Azure Kubernetes Service** with NGINX ingress + cert-manager TLS
+- **Azure SQL Serverless** (GP_S_Gen5) behind a private endpoint
+- **Azure Container Registry** with managed identity image pulls (no Docker Hub)
+- **GitHub Actions with OIDC** — no static Azure credentials
+- **Separate CI/CD workflows** for frontend and backend (6 total workflows)
+- **Single production environment** with required-reviewer approval gate
+- **Terraform** with remote state, plan-on-PR, apply-on-main
+- **Helm charts** for frontend and backend with HPA, PDB, NetworkPolicies, SecretProviderClass
+- **kube-prometheus-stack** with 3 Grafana dashboards and alert rules
+- **Trivy image scanning** blocking on CRITICAL/HIGH vulnerabilities
+- **k6 load testing** targeting ≥300 req/s at p95 ≤ 300ms
 
-See [DEPLOYMENT_NOTES.md](DEPLOYMENT_NOTES.md) for the implementation notes and next steps.
+### Quick Start (Local Dev)
+
+```bash
+# Build and run both services with Docker Compose
+docker compose up --build
+
+# Frontend: http://localhost:3000
+# Backend:  http://localhost:8000/health
+```
+
+### Infrastructure Setup
+
+1. **Bootstrap Terraform state** (one-time):
+   ```bash
+   cd infra/terraform/bootstrap
+   terraform init && terraform apply
+   # Copy outputs into infra/terraform/backend.tf
+   ```
+
+2. **Apply infrastructure**:
+   ```bash
+   cd infra/terraform
+   terraform init && terraform plan && terraform apply
+   ```
+
+3. **Install platform components** (see `k8s/platform/README.md`):
+   ```bash
+   # ingress-nginx, cert-manager, CSI Secret Store driver
+   ```
+
+4. **Configure GitHub**:
+   - Set secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
+   - Set variables: `ACR_NAME`, `ACR_LOGIN_SERVER`, `AKS_RESOURCE_GROUP`, `AKS_CLUSTER_NAME`
+   - Protect the `production` environment with required reviewers
+
+### Key Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — architecture diagram + design justifications
+- [RUNBOOK.md](RUNBOOK.md) — deployment, rollback, secret rotation, incident response
+- [DEPLOYMENT_NOTES.md](DEPLOYMENT_NOTES.md) — implementation notes and status
+- [k8s/platform/README.md](k8s/platform/README.md) — platform component installation guide
 
 ## ✨ What It Does
 

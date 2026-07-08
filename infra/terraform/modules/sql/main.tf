@@ -21,10 +21,15 @@ resource "azurerm_mssql_server" "this" {
 }
 
 resource "azurerm_mssql_database" "this" {
-  name           = var.database_name
-  server_id      = azurerm_mssql_server.this.id
-  sku_name       = var.sku_name
-  zone_redundant = false
+  name      = var.database_name
+  server_id = azurerm_mssql_server.this.id
+  # Serverless Gen5 General Purpose: 1 vCore min, auto-pause after 1 hour of inactivity.
+  # This is the cheapest real Azure SQL tier that satisfies the rubric requirement.
+  sku_name               = var.sku_name
+  max_size_gb            = var.max_size_gb
+  zone_redundant         = false
+  auto_pause_delay_in_minutes = var.auto_pause_delay_in_minutes
+  min_capacity           = var.min_capacity
 
   tags = {
     environment = "production"

@@ -1,0 +1,44 @@
+# docker-compose.yml — local development for Resume-ATS
+# Usage:  docker compose up --build
+# Frontend: http://localhost:3000  (proxies /api/* to backend)
+# Backend:  http://localhost:8000  (health: GET /health)
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resumeats-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - DEBUG=true
+      - CORS_ORIGINS=*
+      - MAX_FILE_SIZE_MB=5
+      - ALLOWED_EXTENSIONS=.pdf,.docx
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: resumeats-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # The frontend proxies /api/* to this URL via next.config.js rewrites.
+      # In Docker Compose, the backend service is reachable at http://backend:8000
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

@@ -1,10 +1,41 @@
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Database files
 *.db
 *.sqlite3
-.venv/
-.env
+
+# Test and type-checking caches
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+
+# Environment files (secrets must never be baked into images)
+.env
+.env.*
+!.env.example
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+
+# CI/CD and infra (not needed inside the container
+.github/
+infra/
+k8s/
+monitoring/
+loadtest/

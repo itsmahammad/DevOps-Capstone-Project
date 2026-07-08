@@ -35,7 +35,7 @@ variable "log_analytics_workspace_id" {
 }
 
 variable "system_node_count" {
-  description = "Number of nodes in the system node pool."
+  description = "Initial number of nodes in the system node pool (autoscaler will adjust)."
   type        = number
   default     = 1
 }
@@ -46,6 +46,18 @@ variable "system_vm_size" {
   default     = "Standard_B2s"
 }
 
+variable "system_min_count" {
+  description = "Minimum number of nodes for the autoscaling system node pool."
+  type        = number
+  default     = 1
+}
+
+variable "system_max_count" {
+  description = "Maximum number of nodes for the autoscaling system node pool."
+  type        = number
+  default     = 2
+}
+
 variable "user_node_count" {
   description = "Initial node count for the user node pool."
   type        = number
@@ -53,9 +65,9 @@ variable "user_node_count" {
 }
 
 variable "user_vm_size" {
-  description = "VM size for the user node pool."
+  description = "VM size for the user node pool. Standard_B2ms (2 vCPU, 8 GiB) gives headroom for OCR workloads."
   type        = string
-  default     = "Standard_B2s"
+  default     = "Standard_B2ms"
 }
 
 variable "user_min_count" {

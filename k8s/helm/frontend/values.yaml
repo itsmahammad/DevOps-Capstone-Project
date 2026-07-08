@@ -1,0 +1,76 @@
+﻿# Default values for frontend Helm chart.
+# Override these in values-production.yaml for production deployments.
+
+replicaCount: 2
+
+image:
+  repository: ""  # Set by CD pipeline, e.g. acrresumeatsprod.azurecr.io/frontend
+  tag: ""         # Set by CD pipeline, e.g. git commit SHA
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  host: app.example.com
+  tls:
+    enabled: false
+    secretName: frontend-tls
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  readiness:
+    path: /
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  liveness:
+    path: /
+    initialDelaySeconds: 20
+    periodSeconds: 20
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+env:
+  NEXT_PUBLIC_API_URL: "http://backend.resumeats-prod.svc.cluster.local"
+
+secretProviderClass:
+  enabled: false
+  keyVaultName: ""
+  tenantId: ""
+  secrets: []
+
+networkPolicy:
+  enabled: true
+
+rollingUpdate:
+  maxUnavailable: 1
+  maxSurge: 1
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""

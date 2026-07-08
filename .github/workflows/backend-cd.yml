@@ -1,0 +1,71 @@
+name: Backend CD
+
+# Main-triggered, path-filtered: build, push to ACR, helm deploy with approval gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-cd.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: ACR login
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az acr login --name ${{ vars.ACR_NAME }}
+
+      - name: Build and push backend image
+        run: |
+          docker build -t ${{ vars.ACR_LOGIN_SERVER }}/backend:${{ github.sha }} ./backend
+          docker push ${{ vars.ACR_LOGIN_SERVER }}/backend:${{ github.sha }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ vars.ACR_LOGIN_SERVER }}/backend:${{ github.sha }}
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Set up kubectl
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ vars.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ vars.AKS_CLUSTER_NAME }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Deploy backend Helm chart
+        run: |
+          helm upgrade --install backend ./k8s/helm/backend \
+            --namespace resumeats-prod \
+            --create-namespace \
+            -f k8s/helm/backend/values-production.yaml \
+            --set image.repository=${{ vars.ACR_LOGIN_SERVER }}/backend \
+            --set image.tag=${{ github.sha }} \
+            --set secretProviderClass.tenantId=${{ secrets.AZURE_TENANT_ID }} \
+            --wait --timeout 5m
+
+      - name: Check rollout status
+        run: |
+          kubectl rollout status deployment/backend -n resumeats-prod --timeout=5m

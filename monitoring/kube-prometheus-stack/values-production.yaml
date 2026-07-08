@@ -1,0 +1,169 @@
+# values-production.yaml for kube-prometheus-stack
+# Install: helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#   --namespace monitoring --create-namespace -f monitoring/kube-prometheus-stack/values-production.yaml
+
+# ---- Prometheus ----
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    # Scrape the frontend and backend pods in resumeats-prod namespace
+    additionalScrapeConfigs:
+      - job_name: "resumeats-backend"
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: ["resumeats-prod"]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            regex: backend
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: "8000"
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+
+# ---- Alertmanager ----
+alertmanager:
+  config:
+    route:
+      group_by: ["alertname", "namespace"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: "default"
+    receivers:
+      - name: "default"
+        # Configure email/slack/teams webhook as needed
+        # webhook_configs:
+        #   - url: "https://hooks.slack.com/services/..."
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# ---- Grafana ----
+grafana:
+  adminPassword: ""  # Set via --set grafana.adminPassword=...
+  persistence:
+    enabled: true
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: "resumeats"
+          orgId: 1
+          folder: "Resume-ATS"
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/resumeats
+  dashboardsConfigMaps:
+    resumeats: resumeats-dashboards
+  service:
+    type: ClusterIP
+
+# ---- Default rules (override/add) ----
+defaultRules:
+  create: true
+  groups:
+    create: true
+
+# ---- Additional PrometheusRule for Resume-ATS alerts ----
+additionalPrometheusRules:
+  - name: resumeats-alerts
+    groups:
+      - name: resumeats-api
+        rules:
+          - alert: HighErrorRate
+            expr: |
+              sum(rate(http_requests_total{namespace="resumeats-prod",status=~"5.."}[5m])) by (pod)
+              / sum(rate(http_requests_total{namespace="resumeats-prod"}[5m])) by (pod) > 0.05
+            for: 5m
+            labels:
+              severity: critical
+              namespace: resumeats-prod
+            annotations:
+              summary: "High 5xx error rate on {{ $labels.pod }}"
+              description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%) for the last 5 minutes."
+
+          - alert: ElevatedLatency
+            expr: |
+              histogram_quantile(0.95,
+                sum(rate(http_request_duration_seconds_bucket{namespace="resumeats-prod"}[5m])) by (le, pod)
+              ) > 0.3
+            for: 10m
+            labels:
+              severity: warning
+              namespace: resumeats-prod
+            annotations:
+              summary: "Elevated p95 latency on {{ $labels.pod }}"
+              description: "p95 latency is {{ $value }}s (threshold: 300ms) for the last 10 minutes."
+
+      - name: resumeats-pods
+        rules:
+          - alert: CrashLoopBackOff
+            expr: |
+              increase(kube_pod_container_status_restarts_total{namespace="resumeats-prod"}[1h]) > 5
+            for: 5m
+            labels:
+              severity: critical
+              namespace: resumeats-prod
+            annotations:
+              summary: "Pod {{ $labels.pod }} is in CrashLoopBackOff"
+              description: "Container {{ $labels.container }} has restarted {{ $value }} times in the last hour."
+
+          - alert: PodUnschedulable
+            expr: |
+              kube_pod_status_unschedulable{namespace="resumeats-prod"} == 1
+            for: 10m
+            labels:
+              severity: warning
+              namespace: resumeats-prod
+            annotations:
+              summary: "Pod {{ $labels.pod }} is unschedulable"
+              description: "Pod has been unschedulable for more than 10 minutes. Check node resources and capacity."
+
+      - name: resumeats-nodes
+        rules:
+          - alert: HighNodeCPU
+            expr: |
+              avg(rate(node_cpu_seconds_total{mode!="idle"}[5m])) by (instance) > 0.85
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU usage on node {{ $labels.instance }}"
+              description: "Node CPU usage is {{ $value | humanizePercentage }} (threshold: 85%) for 15 minutes."
+
+          - alert: HighNodeMemory
+            expr: |
+              1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.85
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High memory usage on node {{ $labels.instance }}"
+              description: "Node memory usage is {{ $value | humanizePercentage }} (threshold: 85%) for 15 minutes."

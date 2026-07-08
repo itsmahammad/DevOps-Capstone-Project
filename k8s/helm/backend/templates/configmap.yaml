@@ -1,0 +1,13 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "backend.fullname" . }}-config
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+data:
+  PORT: {{ .Values.env.PORT | quote }}
+  HOST: {{ .Values.env.HOST | quote }}
+  DEBUG: {{ .Values.env.DEBUG | quote }}
+  CORS_ORIGINS: {{ .Values.env.CORS_ORIGINS | quote }}
+  MAX_FILE_SIZE_MB: {{ .Values.env.MAX_FILE_SIZE_MB | quote }}
+  ALLOWED_EXTENSIONS: {{ .Values.env.ALLOWED_EXTENSIONS | quote }}

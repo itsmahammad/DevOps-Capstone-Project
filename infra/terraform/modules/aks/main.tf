@@ -11,7 +11,9 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size              = var.system_vm_size
     os_disk_size_gb      = 30
     vnet_subnet_id       = var.aks_subnet_id
-    auto_scaling_enabled = false
+    auto_scaling_enabled = true
+    min_count            = var.system_min_count
+    max_count            = var.system_max_count
   }
 
   identity {

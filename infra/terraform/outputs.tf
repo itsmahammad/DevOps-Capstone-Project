@@ -22,3 +22,15 @@ output "resource_group_name" {
   description = "Name of the main resource group."
   value       = module.resource_group.name
 }
+
+output "github_oidc_client_id" {
+  description = "Client ID of the GitHub Actions OIDC App Registration. Set as GitHub secret AZURE_CLIENT_ID."
+  value       = module.github_oidc.client_id
+  sensitive   = true
+}
+
+output "github_oidc_tenant_id" {
+  description = "Tenant ID for the GitHub Actions OIDC identity. Set as GitHub secret AZURE_TENANT_ID."
+  value       = module.github_oidc.tenant_id
+  sensitive   = true
+}

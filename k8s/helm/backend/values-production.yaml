@@ -1,0 +1,30 @@
+﻿# Production overrides for backend Helm chart.
+replicaCount: 3
+image:
+  pullPolicy: IfNotPresent
+hpa:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 75
+pdb:
+  enabled: true
+  minAvailable: 1
+rollingUpdate:
+  maxUnavailable: 1
+  maxSurge: 1
+env:
+  PORT: "8000"
+  HOST: "0.0.0.0"
+  DEBUG: "false"
+  CORS_ORIGINS: "*"
+  MAX_FILE_SIZE_MB: "5"
+  ALLOWED_EXTENSIONS: ".pdf,.docx"
+secretProviderClass:
+  enabled: true
+  keyVaultName: "kv-resumeats-prod"
+  tenantId: ""
+  secrets:
+    - name: sql-admin-password
+      objectName: sql-admin-password
+      key: sql-admin-password

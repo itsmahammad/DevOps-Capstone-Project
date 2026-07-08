@@ -4,6 +4,6 @@ terraform {
     resource_group_name  = "REPLACE_WITH_BOOTSTRAP_OUTPUT"
     storage_account_name = "REPLACE_WITH_BOOTSTRAP_OUTPUT"
     container_name       = "tfstate"
-    key                  = "prod.terraform.tfstate"
+    key                  = "production/terraform.tfstate"
   }
 }

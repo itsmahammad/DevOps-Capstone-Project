@@ -1,4 +1,37 @@
+# Dependencies (will be installed fresh in the build stage)
 node_modules
+
+# Next.js build output (will be produced by the build stage)
 .next
+out
+
+# Debug logs
 npm-debug.log*
-.env*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (secrets must never be baked into images)
+.env
+.env.*
+!.env.example
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+
+# CI/CD and infra (not needed inside the container)
+.github/
+infra/
+k8s/
+monitoring/
+loadtest/
+
+# Tests and coverage
+coverage
+.nyc_output
