@@ -20,15 +20,56 @@ spec:
         {{- include "frontend.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "frontend.serviceAccountName" . }}
+      # Pod-level security context — sets the default for all containers in the pod.
+      # fsGroup ensures mounted volumes are owned by this GID, so the non-root
+      # container user can read/write them.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      # emptyDir for /tmp — Next.js standalone may write temporary cache files here.
+      # With readOnlyRootFilesystem: true, the root filesystem is immutable, so
+      # any writable path must be explicitly mounted as a volume.
+      volumes:
+        - name: tmp
+          emptyDir: {}
       containers:
         - name: frontend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Container-level security context — hardens the container runtime.
+          #   runAsNonRoot: true          — Kubernetes verifies the container process
+          #                                  does not run as UID 0 (root).
+          #   allowPrivilegeEscalation: false — prevents setuid/setgid escalation.
+          #   readOnlyRootFilesystem: true    — root filesystem is read-only; only
+          #                                     mounted volumes are writable.
+          #   capabilities.drop: [ALL]        — drops ALL Linux capabilities (e.g.
+          #                                     NET_BIND_SERVICE, SYS_ADMIN, etc.).
+          #   seccompProfile: RuntimeDefault  — applies the default seccomp profile
+          #                                     which blocks dangerous syscalls.
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           ports:
             - containerPort: {{ .Values.service.targetPort }}
           env:
             - name: NEXT_PUBLIC_API_URL
               value: {{ .Values.env.NEXT_PUBLIC_API_URL | quote }}
+          # Mount the emptyDir volume at /tmp so the app can write temp files.
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}

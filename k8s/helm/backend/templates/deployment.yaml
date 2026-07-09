@@ -20,10 +20,49 @@ spec:
         {{- include "backend.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "backend.serviceAccountName" . }}
+      # Pod-level security context — sets the default for all containers in the pod.
+      # fsGroup ensures mounted volumes (including the emptyDir for /tmp) are owned
+      # by this GID, so the non-root container user can read/write them.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      # emptyDir for /tmp — the backend writes temporary files here via:
+      #   1. tempfile.NamedTemporaryFile — saves uploaded PDF/DOCX for parsing
+      #   2. pdf2image.convert_from_path — converts PDF pages to images for OCR
+      #   3. pytesseract — may write intermediate files during OCR processing
+      # With readOnlyRootFilesystem: true, the root filesystem is immutable, so
+      # /tmp must be explicitly mounted as a writable volume.
+      volumes:
+        - name: tmp
+          emptyDir: {}
       containers:
         - name: backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Container-level security context — hardens the container runtime.
+          #   runAsNonRoot: true          — Kubernetes verifies the container process
+          #                                  does not run as UID 0 (root).
+          #   allowPrivilegeEscalation: false — prevents setuid/setgid escalation.
+          #   readOnlyRootFilesystem: true    — root filesystem is read-only; only
+          #                                     mounted volumes (e.g. /tmp) are writable.
+          #   capabilities.drop: [ALL]        — drops ALL Linux capabilities.
+          #   seccompProfile: RuntimeDefault  — applies the default seccomp profile
+          #                                     which blocks dangerous syscalls.
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           ports:
             - containerPort: {{ .Values.service.targetPort }}
           env:
@@ -39,6 +78,11 @@ spec:
               value: {{ .Values.env.MAX_FILE_SIZE_MB | quote }}
             - name: ALLOWED_EXTENSIONS
               value: {{ .Values.env.ALLOWED_EXTENSIONS | quote }}
+          # Mount the emptyDir volume at /tmp so the backend can write temp files
+          # (uploaded resumes, OCR intermediate images, etc.).
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}

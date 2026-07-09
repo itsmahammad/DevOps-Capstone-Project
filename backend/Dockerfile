@@ -48,6 +48,20 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application source (app/ only — tests excluded via .dockerignore)
 COPY ./app ./app
 
+# Create a dedicated non-root user and group for the application.
+# This follows the principle of least privilege — the process should never run as root.
+# UID/GID 1001 is chosen to avoid conflicts with system users (typically < 1000).
+RUN groupadd --gid 1001 appuser && \
+    useradd --uid 1001 --gid appuser --shell /bin/false --create-home appuser
+
+# Ensure the application directory and all files are owned by the non-root user.
+# /tmp must be writable for tempfile.NamedTemporaryFile and pdf2image OCR processing.
+RUN chown -R appuser:appuser /app && \
+    chmod 1777 /tmp
+
+# Switch to the non-root user — all subsequent commands and the CMD run as appuser.
+USER 1001:1001
+
 EXPOSE 8000
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
