@@ -1,7 +1,7 @@
 variable "project_name" {
   description = "Base prefix used for naming resources."
   type        = string
-  default     = "BugSlayers"
+  default     = "bugslayers"
 }
 
 variable "location" {
@@ -21,10 +21,4 @@ variable "sql_admin_login" {
   description = "Administrator login name for Azure SQL."
   type        = string
   default     = "sqladmin"
-}
-
-variable "github_repository" {
-  description = "GitHub repository in <org>/<repo> format for OIDC federated credential."
-  type        = string
-  default     = "itsmahammad/DevOps-Capstone-Project"
 }

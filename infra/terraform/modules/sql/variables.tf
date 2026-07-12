@@ -1,3 +1,8 @@
+# SQL module variables.
+#
+# Serverless-only variables (auto_pause_delay_in_minutes, min_capacity) have been
+# removed because the module now uses the Basic provisioned SKU instead of GP_S_Gen5.
+
 variable "resource_group_name" {
   description = "Name of the resource group in which to create the SQL resources."
   type        = string
@@ -9,7 +14,7 @@ variable "location" {
 }
 
 variable "server_name" {
-  description = "Name of the Azure SQL logical server."
+  description = "Name of the Azure SQL logical server. Will be lowercased to comply with Azure naming rules."
   type        = string
 }
 
@@ -24,27 +29,15 @@ variable "administrator_login" {
 }
 
 variable "sku_name" {
-  description = "SKU of the Azure SQL database. GP_S_Gen5 = General Purpose Serverless Gen5."
+  description = "SKU of the Azure SQL database. Basic = 5 DTU, cheapest provisioned tier (~$5/month)."
   type        = string
-  default     = "GP_S_Gen5"
+  default     = "Basic"
 }
 
 variable "max_size_gb" {
-  description = "Maximum size in GB for the Azure SQL database."
+  description = "Maximum size in GB for the Azure SQL database. Basic SKU supports up to 2 GB."
   type        = number
-  default     = 32
-}
-
-variable "auto_pause_delay_in_minutes" {
-  description = "Minutes of inactivity before the serverless database auto-pauses (60 minimum)."
-  type        = number
-  default     = 60
-}
-
-variable "min_capacity" {
-  description = "Minimum vCores for the serverless database (0.5 or 1 for Gen5)."
-  type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "private_endpoint_subnet_id" {

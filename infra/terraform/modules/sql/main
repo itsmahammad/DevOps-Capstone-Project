@@ -63,10 +63,10 @@ resource "azurerm_private_endpoint" "sql" {
   subnet_id           = var.private_endpoint_subnet_id
 
   private_service_connection {
-    name                           = "${lower(var.server_name)}-psc"
-    private_connection_resource_id = azurerm_mssql_server.this.id
-    subresource_names              = ["sqlServer"]
-    is_manual_connection           = false
+    name                            = "${lower(var.server_name)}-psc"
+    private_connection_resource_id  = azurerm_mssql_server.this.id
+    subresource_names               = ["sqlServer"]
+    is_manual_connection            = false
   }
 
   tags = {

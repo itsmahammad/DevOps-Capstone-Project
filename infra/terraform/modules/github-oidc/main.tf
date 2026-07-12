@@ -13,7 +13,7 @@ resource "azuread_application" "github_actions" {
 }
 
 resource "azuread_service_principal" "github_actions" {
-  client_id  = azuread_application.github_actions.client_id
+  client_id   = azuread_application.github_actions.client_id
   description = "Service principal for GitHub Actions OIDC (${var.repository})"
 }
 

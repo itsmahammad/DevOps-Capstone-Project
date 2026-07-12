@@ -1,4 +1,4 @@
-﻿variable "application_name" {
+variable "application_name" {
   description = "Display name for the Azure AD App Registration."
   type        = string
 }

@@ -30,11 +30,11 @@ module "aks" {
   aks_subnet_id              = module.networking.aks_subnet_id
   log_analytics_workspace_id = module.log_analytics.workspace_id
   system_node_count          = 1
-  system_vm_size             = "Standard_B2s"
+  system_vm_size             = "Standard_D2s_v3"
   system_min_count           = 1
   system_max_count           = 2
   user_node_count            = 2
-  user_vm_size               = "Standard_B2ms"
+  user_vm_size               = "Standard_D2s_v3"
   user_min_count             = 2
   user_max_count             = 4
 }
@@ -65,12 +65,4 @@ module "sql" {
   administrator_login        = var.sql_admin_login
   private_endpoint_subnet_id = module.networking.private_endpoint_subnet_id
   key_vault_id               = module.key_vault.id
-}
-
-module "github_oidc" {
-  source             = "./modules/github-oidc"
-  application_name   = "github-actions-${var.project_name}-prod"
-  repository         = var.github_repository
-  resource_group_id  = module.resource_group.id
-  acr_id             = module.acr.id
 }

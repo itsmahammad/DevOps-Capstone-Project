@@ -26,8 +26,12 @@ resource "azurerm_kubernetes_cluster" "this" {
     # Azure CNI uses per-node IPs and is the more production-friendly option, but it can hit
     # vCPU/quotas on trial subscriptions. Kubenet is lighter-weight and may be easier to fit,
     # but it offers less network isolation and fewer advanced features.
-    network_plugin    = "azure"
-    load_balancer_sku = "standard"
+    network_plugin     = "azure"
+    load_balancer_sku  = "standard"
+    # Service CIDR must NOT overlap with the VNet address space (10.0.0.0/16).
+    # Using 10.240.0.0/16 keeps the Kubernetes service network completely separate.
+    service_cidr       = "10.240.0.0/16"
+    dns_service_ip     = "10.240.0.10"
   }
 
   oms_agent {
