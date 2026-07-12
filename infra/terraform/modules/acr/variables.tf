@@ -13,7 +13,7 @@ variable "location" {
   type        = string
 }
 
-variable "aks_principal_id" {
-  description = "Principal ID of the AKS managed identity that should pull from the registry."
+variable "kubelet_identity_object_id" {
+  description = "Object ID of the AKS kubelet managed identity."
   type        = string
 }

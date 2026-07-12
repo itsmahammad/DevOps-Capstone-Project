@@ -40,11 +40,11 @@ module "aks" {
 }
 
 module "acr" {
-  source              = "./modules/acr"
-  name                = "acr${replace(var.project_name, "-", "")}prod"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  aks_principal_id    = module.aks.principal_id
+  source                      = "./modules/acr"
+  name                        = "acr${replace(var.project_name, "-", "")}prod"
+  resource_group_name         = module.resource_group.name
+  location                    = module.resource_group.location
+  kubelet_identity_object_id  = module.aks.kubelet_identity_object_id
 }
 
 module "key_vault" {

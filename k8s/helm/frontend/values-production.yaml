@@ -27,7 +27,7 @@ env:
   NEXT_PUBLIC_API_URL: "http://backend.resumeats-prod.svc.cluster.local"
 secretProviderClass:
   enabled: true
-  keyVaultName: "kv-resumeats-prod"
+  keyVaultName: "kv-bugslayers-prod"
   tenantId: ""
   secrets:
     - name: sql-admin-password
