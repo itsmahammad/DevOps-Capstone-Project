@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "backend/**"
+      - "k8s/helm/backend/**"
       - ".github/workflows/backend-cd.yml"
 
 permissions:

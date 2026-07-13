@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "frontend/**"
+      - "k8s/helm/frontend/**"
       - ".github/workflows/frontend-cd.yml"
 
 permissions:
