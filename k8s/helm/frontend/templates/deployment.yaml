@@ -64,8 +64,8 @@ spec:
           ports:
             - containerPort: {{ .Values.service.targetPort }}
           env:
-            - name: NEXT_PUBLIC_API_URL
-              value: {{ .Values.env.NEXT_PUBLIC_API_URL | quote }}
+            - name: API_URL
+              value: {{ .Values.env.API_URL | quote }}
           # Mount the emptyDir volume at /tmp so the app can write temp files.
           volumeMounts:
             - name: tmp

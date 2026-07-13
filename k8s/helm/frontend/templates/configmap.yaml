@@ -5,4 +5,4 @@ metadata:
   labels:
     {{- include "frontend.labels" . | nindent 4 }}
 data:
-  NEXT_PUBLIC_API_URL: {{ .Values.env.NEXT_PUBLIC_API_URL | quote }}
+  API_URL: {{ .Values.env.API_URL | quote }}

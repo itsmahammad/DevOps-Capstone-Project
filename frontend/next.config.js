@@ -2,28 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  async rewrites() {
-    // Default to the local backend for development.
-    // In production (Kubernetes), NEXT_PUBLIC_API_URL is set to the internal
-    // backend service URL (e.g. http://backend.resumeats-prod.svc.cluster.local),
-    // so the Next.js server-side rewrite proxy forwards requests to the backend
-    // without exposing it to the Internet.
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiBaseUrl}/api/:path*`,
-      },
-      {
-        // Health-check endpoint used by BackendStatusBanner and WakeUpScreen.
-        // Routed through the Next.js server-side proxy so the browser never
-        // needs to reach the backend directly (which is cluster-internal only).
-        source: '/health',
-        destination: `${apiBaseUrl}/health`,
-      },
-    ];
-  },
+  // NOTE: Do NOT use next.config.js `rewrites()` for backend proxying.
+  //
+  // Next.js evaluates `rewrites()` at BUILD time and serializes the resolved
+  // destination URLs into .next/required-server-files.js. If the env var
+  // (API_URL) is not set during the Docker build, the default value
+  // "http://localhost:8000" gets baked into the standalone bundle, and the
+  // runtime env var set in Kubernetes is ignored — causing the production
+  // server to proxy to localhost:8000 (ECONNREFUSED).
+  //
+  // Instead, backend proxying is done via App Router Route Handlers
+  // (src/app/api/.../route.ts and src/app/health/route.ts) which read
+  // process.env.API_URL at RUNTIME on every request.
 };
 
 module.exports = nextConfig;

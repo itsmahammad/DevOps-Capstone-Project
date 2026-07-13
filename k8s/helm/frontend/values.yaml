@@ -63,7 +63,10 @@ pdb:
   minAvailable: 1
 
 env:
-  NEXT_PUBLIC_API_URL: "http://backend.resumeats-prod.svc.cluster.local"
+  # Non-public env var — read at RUNTIME by the Next.js server (next.config.js),
+  # NOT baked into the build. This avoids the localhost:8000 build-time issue
+  # where NEXT_PUBLIC_* vars are inlined into the standalone bundle at build time.
+  API_URL: "http://backend.resumeats-prod.svc.cluster.local"
 
 secretProviderClass:
   enabled: false
