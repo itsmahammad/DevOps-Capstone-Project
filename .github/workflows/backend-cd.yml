@@ -64,4 +64,3 @@ jobs:
       - name: Check rollout status
         run: |
           kubectl rollout status deployment/backend -n resumeats-prod --timeout=5m
-          # Check if the deployment is successful
