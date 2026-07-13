@@ -1,5 +1,5 @@
 # ---- Build stage: install deps and build Next.js standalone ----
-FROM node:20.20.2-alpine3.20 AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
