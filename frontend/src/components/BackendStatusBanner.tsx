@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Wifi, WifiOff } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 const POLL_INTERVAL = 30000;
 
 export default function BackendStatusBanner() {
@@ -13,7 +12,10 @@ export default function BackendStatusBanner() {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch(`${BACKEND_URL}/health`, { signal: controller.signal });
+      // Use the same-origin /health path. Next.js rewrites this to the backend
+      // via its server-side proxy (see next.config.js), so the browser never
+      // needs to reach the (cluster-internal) backend directly.
+      const res = await fetch('/health', { signal: controller.signal });
       clearTimeout(timeout);
       setIsOnline(res.ok);
     } catch {

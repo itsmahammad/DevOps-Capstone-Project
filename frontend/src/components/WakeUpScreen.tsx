@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ShieldCheck, Loader2, CheckCircle2, WifiOff, RefreshCw } from 'lucide-react';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-
 interface WakeUpScreenProps {
   onVerified: () => void;
 }
@@ -27,7 +25,10 @@ export default function WakeUpScreen({ onVerified }: WakeUpScreenProps) {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30000);
-      const res = await fetch(`${BACKEND_URL}/health`, { signal: controller.signal });
+      // Use the same-origin /health path. Next.js rewrites this to the backend
+      // via its server-side proxy (see next.config.js), so the browser never
+      // needs to reach the (cluster-internal) backend directly.
+      const res = await fetch('/health', { signal: controller.signal });
       clearTimeout(timeout);
       return res.ok;
     } catch {
@@ -85,7 +86,7 @@ export default function WakeUpScreen({ onVerified }: WakeUpScreenProps) {
               </p>
               <p className="text-gray-500 mb-8 text-xs leading-relaxed">
                 Our backend runs on a free tier and may be sleeping.
-                Click below to wake it up and verify you&apos;re a real person.
+                Click below to wake it up and verify you're a real person.
               </p>
 
               <button
@@ -98,7 +99,7 @@ export default function WakeUpScreen({ onVerified }: WakeUpScreenProps) {
                     <div className="w-3 h-3 rounded-sm bg-transparent group-hover:bg-brand-500/30 transition-colors" />
                   </div>
                   <span className="text-gray-300 font-medium text-lg">
-                    I&apos;m not a robot
+                    I'm not a robot
                   </span>
                 </div>
               </button>
@@ -175,7 +176,7 @@ export default function WakeUpScreen({ onVerified }: WakeUpScreenProps) {
                 Server is unavailable
               </p>
               <p className="text-gray-400 text-sm mb-6">
-                The server couldn&apos;t be reached after multiple attempts.
+                The server couldn't be reached after multiple attempts.
                 It may be undergoing maintenance.
               </p>
               <button
