@@ -11,19 +11,24 @@ pdb:
   enabled: true
   minAvailable: 1
 ingress:
-  enabled: true
+  # Development/testing: the backend is NOT exposed through an Ingress.
+  # The frontend reaches it via the internal Kubernetes service
+  # (backend.resumeats-prod.svc.cluster.local). This avoids NGINX
+  # rejecting two hostless Ingresses that share the same "/" path.
+  # To expose the backend on a real API domain in production, set
+  # enabled: true and uncomment the hosts/tls/annotations below.
+  enabled: false
   className: nginx
-  # Development/testing: access by Ingress LoadBalancer IP.
-  # No host, no TLS, no cert-manager, HTTPS redirect disabled.
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
   hosts:
-    - host: ""  # empty -> host-less rule (matches the LoadBalancer IP)
+    - host: ""
       paths:
         - path: /
           pathType: Prefix
   tls: []
-  # To re-enable production TLS with a custom domain, uncomment and set the host:
+  # Production: expose the backend on a real API domain with TLS.
+  # enabled: true
   # annotations:
   #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
   #   cert-manager.io/cluster-issuer: letsencrypt-prod

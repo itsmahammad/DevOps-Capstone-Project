@@ -17,21 +17,21 @@ service:
   targetPort: 8000
 
 ingress:
-  enabled: true
+  # Development/testing: the backend is NOT exposed through an Ingress.
+  # The frontend reaches it via the internal Kubernetes service
+  # (backend.resumeats-prod.svc.cluster.local). This avoids NGINX
+  # rejecting two hostless Ingresses that share the same "/" path.
+  # For production with a real API domain + TLS, set enabled: true and
+  # configure hosts/tls/annotations (see values-production.yaml).
+  enabled: false
   className: nginx
-
-  # Development/testing: access the app directly by the Ingress
-  # LoadBalancer IP. No host, no TLS, no cert-manager, no HTTPS redirect.
-  # For production with a custom domain + TLS, see values-production.yaml.
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-
   hosts:
-    - host: ""  # empty -> host-less rule (matches the LoadBalancer IP)
+    - host: ""
       paths:
         - path: /
           pathType: Prefix
-
   tls: []
 
 resources:
