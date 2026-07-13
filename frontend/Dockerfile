@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 # ---- Runtime stage: slim image using Next.js standalone output ----
-FROM node:20.20.2-alpine3.20 AS runtime
+FROM node:20-alpine AS runtime
 
 # Apply security updates for base image packages (e.g. OpenSSL fixes)
 RUN apk update && apk upgrade --no-cache
