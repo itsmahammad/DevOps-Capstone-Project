@@ -16,7 +16,19 @@ service:
   port: 80
   targetPort: 8000
 
-# No ingress for backend — it is only reachable from frontend pods via ClusterIP.
+ingress:
+  enabled: true
+  className: nginx
+
+  annotations: {}
+
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+  tls: []
 
 resources:
   # Backend needs headroom for Tesseract OCR spikes (PDF -> image -> OCR is CPU/memory intensive)

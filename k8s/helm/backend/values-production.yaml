@@ -10,6 +10,22 @@ hpa:
 pdb:
   enabled: true
   minAvailable: 1
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - api.example.com
+      secretName: backend-tls
+
 rollingUpdate:
   maxUnavailable: 1
   maxSurge: 1

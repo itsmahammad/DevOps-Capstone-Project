@@ -1,5 +1,5 @@
 # ---- Build stage: install deps and build Next.js standalone ----
-FROM node:20-alpine AS build
+FROM node:20.20.2-alpine3.20 AS build
 
 WORKDIR /app
 
@@ -10,7 +10,10 @@ COPY . .
 RUN npm run build
 
 # ---- Runtime stage: slim image using Next.js standalone output ----
-FROM node:20-alpine AS runtime
+FROM node:20.20.2-alpine3.20 AS runtime
+
+# Apply security updates for base image packages (e.g. OpenSSL fixes)
+RUN apk update && apk upgrade --no-cache
 
 WORKDIR /app
 

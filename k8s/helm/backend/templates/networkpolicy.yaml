@@ -13,11 +13,21 @@ spec:
     - Ingress
   ingress:
     {{- if .Values.networkPolicy.allowFromFrontend }}
-    # Only allow ingress from frontend pods
+    # Allow ingress from frontend pods
     - from:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: frontend
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+    {{- end }}
+    {{- if .Values.ingress.enabled }}
+    # Allow ingress from the nginx ingress controller namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
       ports:
         - protocol: TCP
           port: {{ .Values.service.targetPort }}
