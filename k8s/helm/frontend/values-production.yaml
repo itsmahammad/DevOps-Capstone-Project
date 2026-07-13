@@ -5,18 +5,29 @@ image:
 ingress:
   enabled: true
   className: nginx
+  # Development/testing: access by Ingress LoadBalancer IP.
+  # No host, no TLS, no cert-manager, HTTPS redirect disabled.
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
   hosts:
-    - host: app.example.com
+    - host: ""  # empty -> host-less rule (matches the LoadBalancer IP)
       paths:
         - path: /
           pathType: Prefix
-  tls:
-    - hosts:
-        - app.example.com
-      secretName: frontend-tls
+  tls: []
+  # To re-enable production TLS with a custom domain, uncomment and set the host:
+  # annotations:
+  #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod
+  # hosts:
+  #   - host: app.example.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  # tls:
+  #   - hosts:
+  #       - app.example.com
+  #     secretName: frontend-tls
 hpa:
   enabled: true
   minReplicas: 3

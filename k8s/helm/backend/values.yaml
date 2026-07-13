@@ -20,10 +20,14 @@ ingress:
   enabled: true
   className: nginx
 
-  annotations: {}
+  # Development/testing: access the app directly by the Ingress
+  # LoadBalancer IP. No host, no TLS, no cert-manager, no HTTPS redirect.
+  # For production with a custom domain + TLS, see values-production.yaml.
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 
   hosts:
-    - host: api.example.com
+    - host: ""  # empty -> host-less rule (matches the LoadBalancer IP)
       paths:
         - path: /
           pathType: Prefix
