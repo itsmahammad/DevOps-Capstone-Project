@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 from app import get_settings
 from app.api.exception_handlers import register_exception_handlers
@@ -13,7 +15,7 @@ app = FastAPI(
     description='AI-powered resume analysis and ATS scoring',
     version=settings.app_version,
 )
-
+Instrumentator().instrument(app).expose(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
