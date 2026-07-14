@@ -15,7 +15,7 @@ app = FastAPI(
     description='AI-powered resume analysis and ATS scoring',
     version=settings.app_version,
 )
-Instrumentator().instrument(app).expose(app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
@@ -27,6 +27,8 @@ app.add_middleware(
 register_exception_handlers(app)
 app.include_router(system_router)
 app.include_router(analyze_router)
+
+Instrumentator().instrument(app).expose(app)
 
 if __name__ == '__main__':
     import uvicorn
