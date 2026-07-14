@@ -15,4 +15,4 @@ pdf2image==1.17.0
 Pillow>=10.0.0
 
 #monitoring
-prometheus-fastapi-instrumentator=7.1.0
+prometheus-fastapi-instrumentator==7.1.0
