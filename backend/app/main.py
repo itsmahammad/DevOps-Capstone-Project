@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_fastapi_instrumentator import Instrumentator
+# from prometheus_fastapi_instrumentator import Instrumentator
 
 
 from app import get_settings
@@ -28,7 +28,7 @@ register_exception_handlers(app)
 app.include_router(system_router)
 app.include_router(analyze_router)
 
-Instrumentator().instrument(app).expose(app)
+# Instrumentator().instrument(app).expose(app)
 
 if __name__ == '__main__':
     import uvicorn
